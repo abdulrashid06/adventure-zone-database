@@ -46,9 +46,13 @@ public class AppConfig implements WebMvcConfigurer {
 	                    return configuration;
 	                }
 	            });
-	        });
+	        })
 	        .authorizeHttpRequests(auth -> auth
-	            .requestMatchers(HttpMethod.GET, "/admins/customers_list").permitAll()
+	            .requestMatchers("/adventureZone/admin/signIn", "/adventureZone/customer/signIn", "/adventureZone/addCustomer").permitAll()
+	            .requestMatchers("/adventureZone/customers/{customerId}", "/adventureZone/tickets",
+	            		"/adventureZone/ticket/{ticketId}", "/adventureZone/categoryList").hasRole("USER")
+	            .requestMatchers("/adventureZone/customerList", "/adventureZone/customers/{customerId}", "/adventureZone/categories/**"
+	            		, "/adventureZone/activities/**", "/adventureZone/admins/**", "/adventureZone/customers/**").hasRole("ADMIN")
 	            .anyRequest().authenticated())
 				.csrf(csrf -> csrf.disable())
 				.addFilterAfter(new JwtTokenGeneratorFilter(), BasicAuthenticationFilter.class)
@@ -60,7 +64,7 @@ public class AppConfig implements WebMvcConfigurer {
 	}
 
    @Bean
-   public passwordEncoder passwordEncoder() {
+   public PasswordEncoder passwordEncoder() {
        return new BCryptPasswordEncoder();
    }
 
