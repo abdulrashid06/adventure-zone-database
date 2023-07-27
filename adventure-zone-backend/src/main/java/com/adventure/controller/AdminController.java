@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
 import com.adventure.model.Admin;
 import com.adventure.model.Customer;
 import com.adventure.repository.AdminRespository;
@@ -36,14 +36,14 @@ public class AdminController {
     
     @Autowired
     private AdminRespository adminRepositry;
-//    
-//    @Autowired
-//    private PasswordEncoder pe;
+   
+   @Autowired
+   private PasswordEncoder pe;
 
     @PostMapping("/addAdmins")
     public ResponseEntity<Admin> registerAdmin(@Valid @RequestBody Admin customer) {
     	customer.setRole("ROLE_"+customer.getRole().toUpperCase());
-//        customer.setPassword(pe.encode(customer.getPassword()));
+       customer.setPassword(pe.encode(customer.getPassword()));
         Admin cus = adminService.registerAdmin(customer);
         return new ResponseEntity<Admin>(cus, HttpStatus.CREATED);
 
@@ -67,20 +67,21 @@ public class AdminController {
         return new ResponseEntity<List<Customer>>(cusList, HttpStatus.OK);
     }
 
-    
-    @PostMapping("/admin/signIn")
-	public ResponseEntity<Admin> adminLogin(@PathVariable String username, @PathVariable String password){
-		 Admin admin = adminService.adminLogin(username, password);
-		 return new ResponseEntity<>(admin, HttpStatus.OK);
-	}
 
-//    @GetMapping("/logout")
-//    public ResponseEntity<String> logout(HttpServletRequest request) {
-//        HttpSession session = request.getSession(false);
-//        if (session != null) {
-//            session.invalidate();
-//        }
-//        return new ResponseEntity<>("Logout successful", HttpStatus.OK);
-//    }
+    @GetMapping("/admin/signIn")
+    public ResponseEntity<Admin> logInUserHandler(Authentication auth){
+        java.util.Optional<Admin> opt= adminRepositry.findByEmail(auth.getName());
+        if(opt.isEmpty()) throw new CustomerException("No user found") ;
+        Admin admin = opt.get();
+        return new ResponseEntity<>(admin, HttpStatus.ACCEPTED);
+    }
+
+    @PostMapping("/admin/signIn")
+    public ResponseEntity<Admin> logInUserHandler(@RequestBody String token) throws CustomerException{
+        String username = DecodeJwt.decodeJwt(token);
+        java.util.Optional<Admin> opt= adminRepositry.findByEmail(username);
+        if(opt.isEmpty()) throw new CustomerException("No user found") ;
+        return new ResponseEntity<>(opt.get(), HttpStatus.ACCEPTED);
+    }
     
 }
