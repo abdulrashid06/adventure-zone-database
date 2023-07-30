@@ -57,7 +57,7 @@ public class AppConfig implements WebMvcConfigurer {
 				.csrf(csrf -> csrf.disable())
 				.addFilterAfter(new JwtTokenGeneratorFilter(), BasicAuthenticationFilter.class)
 				.addFilterBefore(new JwtTokenValidatorFilter(), BasicAuthenticationFilter.class)
-				.formLogin(Customizer.withDefaults())
+				// .formLogin(Customizer.withDefaults())
 				.httpBasic(Customizer.withDefaults());
 
 	    return http.build();
